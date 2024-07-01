@@ -1,18 +1,55 @@
 import { useContext } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
 import { useForm } from "react-hook-form";
+import Swal from "sweetalert2";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
+import SocialLogin from "../../components/SocialLogin/SocialLogin";
 
 const SignUp = () => {
-  const { createUser } = useContext(AuthContext);
+  const { createUser, updateUserProfile } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const axiosPublic = useAxiosPublic();
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm();
   const onSubmit = (data) => {
-    console.log(data);
+    createUser(data.email, data.password)
+      .then((res) => {
+        const user = res.user;
+        console.log(user.uid);
+        updateUserProfile(data.name, data.photo)
+          .then(() => {
+            const userInfo = {
+              name: data.name,
+              email: data.email,
+            };
+            axiosPublic.post("/users", userInfo).then((res) => {
+              if (res.data.insertedId) {
+                reset();
+                Swal.fire({
+                  position: "center",
+                  icon: "success",
+                  title: "user signup successfully",
+                  showConfirmButton: false,
+                  timer: 1500,
+                });
+                navigate("/");
+              }
+            });
+          })
+          .catch((error) => {
+            console.log(error.message);
+          });
+      })
+      .catch((error) => {
+        console.log(error.message);
+        console.log(error.code);
+      });
   };
 
   return (
@@ -38,7 +75,6 @@ const SignUp = () => {
                 </label>
                 <input
                   type="text"
-                  name="name"
                   placeholder="name"
                   className="input input-bordered"
                   //   required
@@ -46,6 +82,21 @@ const SignUp = () => {
                 />
                 {errors.name && (
                   <span className="text-red-600">Name is required</span>
+                )}
+              </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Photo url</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="photo url"
+                  className="input input-bordered"
+                  //   required
+                  {...register("photo", { required: true })}
+                />
+                {errors.photo && (
+                  <span className="text-red-600">photo url is required</span>
                 )}
               </div>
               <div className="form-control">
@@ -102,15 +153,19 @@ const SignUp = () => {
                   value="Signup"
                 />
               </div>
+
               <p className="text-center">
                 <small>
-                  Already have an accoutn?{" "}
+                  Already have an account?{" "}
                   <Link className="text-blue-700" to="/login">
                     Go to login
                   </Link>
                 </small>
               </p>
             </form>
+            <div className="form-control mb-6 text-center">
+              <SocialLogin></SocialLogin>
+            </div>
           </div>
         </div>
       </div>

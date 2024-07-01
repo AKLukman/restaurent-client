@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   loadCaptchaEnginge,
@@ -6,24 +6,20 @@ import {
   validateCaptcha,
 } from "react-simple-captcha";
 import { AuthContext } from "../../context/AuthProvider";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import SocialLogin from "../../components/SocialLogin/SocialLogin";
 
 const Login = () => {
-  const captchaRef = useRef();
   const [disabled, setDisabled] = useState(true);
   const { signInUser } = useContext(AuthContext);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const from = location.state?.from?.pathname || "/";
   useEffect(() => {
     loadCaptchaEnginge(6);
   }, []);
 
-  const captchaValidate = () => {
-    const captchaValue = captchaRef.current.value;
-    if (validateCaptcha(captchaValue)) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
-  };
   const handleLogin = (e) => {
     e.preventDefault();
     const form = e.target;
@@ -33,6 +29,15 @@ const Login = () => {
       .then((result) => {
         const user = result.user;
         console.log(user);
+
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "user log in successful",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        navigate(from, { replace: true });
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -40,6 +45,16 @@ const Login = () => {
         console.log(errorCode, errorMessage);
       });
   };
+
+  const handleValidateCaptcha = (e) => {
+    const user_captcha_value = e.target.value;
+    if (validateCaptcha(user_captcha_value)) {
+      setDisabled(false);
+    } else {
+      setDisabled(true);
+    }
+  };
+
   return (
     <div>
       <Helmet>
@@ -92,18 +107,12 @@ const Login = () => {
                 </label>
                 <input
                   type="text"
-                  name="captch"
-                  ref={captchaRef}
+                  name="captcha"
+                  onBlur={handleValidateCaptcha}
                   placeholder="type the captcha"
                   className="input input-bordered"
                   required
                 />
-                <button
-                  onClick={captchaValidate}
-                  className="btn btn-xs btn-outline mt-4"
-                >
-                  validate
-                </button>
               </div>
               <div className="form-control mt-6">
                 <input
@@ -122,6 +131,9 @@ const Login = () => {
                 </small>
               </p>
             </form>
+            <div className="form-control mb-6 text-center">
+              <SocialLogin></SocialLogin>
+            </div>
           </div>
         </div>
       </div>
