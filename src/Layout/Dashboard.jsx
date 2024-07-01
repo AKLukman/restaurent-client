@@ -66,14 +66,20 @@ const Dashboard = () => {
               <li>
                 <NavLink to="/dashboard/payment">
                   <GrPaypal />
-                  Payment history{" "}
+                  Payment
                 </NavLink>
               </li>
               <li>
+                <NavLink to="/dashboard/paymentHistory">
+                  <FaCalendar></FaCalendar>
+                  Payment history
+                </NavLink>
+              </li>
+              {/* <li>
                 <NavLink to="/dashboard/reservation">
                   <FaCalendar></FaCalendar> Reservation
                 </NavLink>
-              </li>
+              </li> */}
               <li>
                 <NavLink to="/dashboard/review">
                   <MdRateReview /> Review
